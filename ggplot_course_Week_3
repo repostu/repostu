@@ -1,0 +1,146 @@
+---
+title: "Week 3 Peer Review"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+######DO NOT MODIFY. This will load required packages and data.
+
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+
+cces <- drop_na(read_csv(url("https://www.dropbox.com/s/ahmt12y39unicd2/cces_sample_coursera.csv?raw=1")))
+
+cel <- drop_na(read_csv(url("https://www.dropbox.com/s/4ebgnkdhhxo5rac/cel_volden_wiseman%20_coursera.csv?raw=1")))
+
+```
+
+
+
+### Stuart Howard
+
+## Exercise 1
+
+The visualisation is a scatterplot to investigate the relationship between seniority and the number of bills introduced by the member to Congress.
+
+The density of low numbers of introduced bills and levels of seniority mean there is clustering in the bottom left corner of the chart.
+
+```{r exercise1,echo=FALSE}
+
+cel_101 <- filter(cel, congress == 101)
+
+ggplot(cel_101, aes(seniority, all_bills)) +
+  geom_point() +
+  xlab("Seniority")+
+  ylab("Bills Presented")+
+  labs(title = "Bills presented by seniority : 101st Congress") +
+  theme(plot.title = element_text(size= 4)) +
+    annotate("text", x = 6, y =15, label = "there is great density here", color = "black") +
+    annotate("rect", xmin = 2, xmax = 10, ymin = 13, ymax = 17, alpha = 0.1,  color = "purple") +
+  #theme_wsj()
+  theme_economist() 
+  
+
+```
+
+## Exercise 2
+
+The visualisation is a boxplot to investigate the effectiveness in the 101st Congress as distinct between Democratic and Republican party members.
+
+The Volden and Wiseman legislative effective score (LES) is based on the higher values indicating that the member is more effective.
+
+The Democratic Party held a majority in both the Senate and the House of Representatives but the President was the Republican, George H. W. Bush.
+
+
+```{r exercise2,echo=FALSE}
+
+cel_101$politics <-  recode(cel_101$dem, '0' = "Republican", '1' = "Democrat")
+
+ggplot(cel_101, aes(x= politics, y = les)) +
+  geom_boxplot() +
+  xlab("Political affiliation")+
+  ylab("Legislative Effectiveness") +
+  #facet_wrap(~politics) +
+  labs(title = "LES in the 101st Congress") +
+      annotate("text", x = 2, y =8, label = "despite the Bush administration", color = "black")  +
+      annotate("text", x = 2, y =7, label = "it appears that the majority in the Senate and", color = "black") +
+      annotate("text", x = 2, y =6, label = "House of Representatives means that Democratic", color = "black") +
+      annotate("text", x = 2, y =5, label = "representatives can perform effectively", color = "black") +
+      annotate("rect", xmin = 1.25, xmax = 2.75, ymin = 4, ymax = 9, alpha = 0.1,  color = "purple") +
+    #xlab("Party Membership")+
+  theme_wsj() 
+
+
+```
+
+## Exercise 3
+
+The visualisations are facetted barplots designed to indicate the split of power by seniority and party membership in the 101st Congress.
+
+The Democratic Party held a majority in both the Senate and the House of Representatives but the President was the Republican, George H. W. Bush.
+
+```{r exercise3,echo=FALSE}
+
+
+
+
+cel_101$power <-  recode(cel_101$power, '0' = "not on power committee", '1' = "on power committee")
+
+cel_101$power <- as.factor(cel_101$power)
+
+ggplot(cel_101, aes(x = seniority, y = congress/101, fill = politics)) + 
+  geom_col() +
+  xlab("Seniority (years) ") +
+  ylab("Representative count and split")+
+  labs(title = "Politics by Seniority and Power") +
+  guides(fill=guide_legend(title="Political Party")) +
+  #coord_flip() + 
+  theme(legend.position = 'bottom') + 
+  facet_wrap(~ power)
+
+
+
+
+```
+
+## Exercise 4
+
+The visualisation incorporates 2 lineplots to indicate the increased presence of women as the Congresses came and went.
+
+Over time, progress has been made in the greater representation of women but the gap remains significant.
+
+
+```{r exercise4,echo=FALSE, warning = FALSE, message=FALSE}
+
+
+cel$female <-  recode(cel$female, '0' = "Male", '1' = "Female")
+
+cel$female <- as.factor(cel$female)
+
+cel$Gender <- cel$female
+
+
+cel %>%
+  group_by(congress, Gender) %>%
+  summarise(count= n()) %>%
+  ggplot(aes(x = congress, y = count, group =  Gender, colour = Gender)) +
+  geom_line() +
+  geom_point() +
+   theme(legend.position = "bottom") +
+    guides(colour = guide_legend(ncol = 1))+
+   theme(axis.text.x=element_text(size=rel(1))) +
+       geom_text(aes(label = count, vjust = -0.2)) +
+      theme(plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(color = "blue")) +
+    scale_fill_hue(c = 180) +
+  annotate("text", x = 94, y =204, label = "gap is 398", color = "black") +
+    annotate("rect", xmin = 92, xmax = 96, ymin = 188, ymax = 220, alpha = 0.2,  color = "purple") +
+    annotate("text", x = 114, y =204, label = "gap is 242", color = "green") +
+      annotate("rect", xmin = 112, xmax = 116, ymin = 188, ymax = 220, alpha = 0.2,  color = "green") +
+  scale_x_continuous(breaks = seq(93,115,2)) +
+     labs(x = "History of Congress by Number", y  = "Male/Female representation") +
+        ggtitle("Gradual increase in representation of women at Congress" )  
+  
